@@ -64,7 +64,7 @@ Ex_SOP =array2table(Ex_SOP,'VariableNames',name_size,'RowNames',name_OP);
 filename = 'Results/Excess_SOP.xlsx';
 writetable(Ex_SOP,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 
-Sharpe_SOP =array2table(Sharpe_SOP,'VariableNames',name_size,'RowNames',name_BM);
+Sharpe_SOP =array2table(Sharpe_SOP,'VariableNames',name_size,'RowNames',name_OP);
 filename = 'Results/Sharpe_SBM.xlsx';
 writetable(Sharpe_SOP,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 
@@ -73,24 +73,31 @@ Ex_SINV =array2table(Ex_SINV,'VariableNames',name_size,'RowNames',name_INV);
 filename = 'Results/Excess_SINV.xlsx';
 writetable(Ex_SINV,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 
-Sharpe_SINV =array2table(Sharpe_SINV,'VariableNames',name_size,'RowNames',name_BM);
+Sharpe_SINV =array2table(Sharpe_SINV,'VariableNames',name_size,'RowNames',name_INV);
 filename = 'Results/Sharpe_SINV.xlsx';
 writetable(Sharpe_SINV,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 
 %% Exercice 2
 % Computing mean excess return for each portfolio
-Ex_FFF5 = mean(FFF_5-RF);
+Mean_FFF5 = mean(FFF_5);
 Sd_FFF5 = std(FFF_5);
-Sharpe_FFF5 = Ex_FFF5./Sd_FFF5;
+Sharpe_FFF5 = Mean_FFF5./Sd_FFF5;
+
+%Correlation matrix 
+Corr_FFF5 = corrcoef(FFF_5);
 
 % Creating table
-Ex_FFF5 =array2table(Ex_FFF5,'VariableNames',names_FFF5(1:5),'RowNames',{'Excess Return'});
+M_FFF5 =array2table(Mean_FFF5,'VariableNames',names_FFF5(1:5),'RowNames',{'Excess Return'});
 filename = 'Results/Excess_FFF5.xlsx';
-writetable(Ex_FFF5,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
+writetable(M_FFF5,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 
-Sharpe_FFF5 =array2table(Sharpe_FFF5,'VariableNames',names_FFF5(1:5),'RowNames',{'Sharpe Ratio'});
+SR_FFF5 =array2table(Sharpe_FFF5,'VariableNames',names_FFF5(1:5),'RowNames',{'Sharpe Ratio'});
 filename = 'Results/Sharpe_FFF5.xlsx';
-writetable(Sharpe_FFF5,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
+writetable(SR_FFF5,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
+
+Corr_FFF5 =array2table(Corr_FFF5,'VariableNames',names_FFF5(1:5),'RowNames',names_FFF5(1:5));
+filename = 'Results/Corr_FFF5.xlsx';
+writetable(Corr_FFF5,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 
 %% Exercice 3
 % a.i
@@ -99,22 +106,22 @@ Excess_SBM = Size_BM-RF;
 
 % Setting matrix
 [rowSBM,colSBM] = size(Size_BM);
-coefficients_SBM = zeros(colSBM,4);
+coefficients_SBM = zeros(4,colSBM);
 Residuals_SBM = zeros(rowSBM,colSBM);
 % Run regressions
 for i=1:colSBM
     reg = fitlm(FFF_5(:,1),Excess_SBM(:,i));
-    coefficients_SBM(i,1) = reg.Coefficients.Estimate(1);
-    coefficients_SBM(i,3) = reg.Coefficients.Estimate(2);
-    coefficients_SBM(i,2) = reg.Coefficients.tStat(1);
-    coefficients_SBM(i,4) = reg.Coefficients.tStat(2);
+    coefficients_SBM(1,i) = reg.Coefficients.Estimate(1);
+    coefficients_SBM(3,i) = reg.Coefficients.Estimate(2);
+    coefficients_SBM(2,i) = reg.Coefficients.tStat(1);
+    coefficients_SBM(4,i) = reg.Coefficients.tStat(2);
     Residuals_SBM(:,i) = reg.Residuals.Raw;
 end
 
-coef_SBM = coefficients_SBM([1,5,6,10,11,15,16,20,21,25],:);
+coef_SBM = coefficients_SBM(:,[1,5,6,10,11,15,16,20,21,25]);
 
 % Creating table
-coef_SBM =array2table(coef_SBM,'VariableNames',{'alpha','tStat-alpha','beta','tStat-beta'},'RowNames',{'SizeSmall-LowBM','SizeSmall-HighBM','Size2-LowBM','Size2-HighBM','Size3-LowBM','Size3-HighBM','Size4-LowBM','Size4-HighBM','SizeBig-LowBM','SizeBig-HighBM'});
+coef_SBM =array2table(coef_SBM,'VariableNames',{'SizeSmall-LowBM','SizeSmall-HighBM','Size2-LowBM','Size2-HighBM','Size3-LowBM','Size3-HighBM','Size4-LowBM','Size4-HighBM','SizeBig-LowBM','SizeBig-HighBM'},'RowNames',{'alpha','tStat-alpha','beta','tStat-beta'});
 filename = 'Results/coef_SBM.xlsx';
 writetable(coef_SBM,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 
@@ -125,7 +132,7 @@ coefficients_TSP = zeros(2,2);
 EM_BM = mean(Size_BM-RF);
 
 % Run regressions
-reg = fitlm(coefficients_SBM(:,3),EM_BM');
+reg = fitlm(coefficients_SBM(3,:)',EM_BM');
 coefficients_TSP(1,1) = reg.Coefficients.Estimate(1);
 coefficients_TSP(1,2) = reg.Coefficients.Estimate(2);
 coefficients_TSP(2,1) = reg.Coefficients.tStat(1);
@@ -142,42 +149,41 @@ writetable(coefficients_TSP,filename,'Sheet',1,'Range','D1','WriteRowNames',true
 CovMat = 1/rowSBM*(Residuals_SBM'*Residuals_SBM);
 
 % Joint test
-Em_rm = mean(FFF_5-RF)/std(FFF_5);
-J_0 = rowSBM*((1+Em_rm^2)^(-1))*coefficients_SBM(:,1)'*...
-    (CovMat^(-1))*coefficients_SBM(:,1);
+J_0 = rowSBM*((1+Sharpe_FFF5(:,1).^2)^(-1))*coefficients_SBM(1,:)*...
+    (CovMat^(-1))*coefficients_SBM(1,:)';
+
+
 
 % Critical value
-CriticalValue = chi2inv(0.95, 25);
+CriticalValueWald = chi2inv(0.95, 25);
 
 % Creating table
-WaldTest = table([J_0;CriticalValue],'VariableNames',{'WaldTest'},'RowNames',{'J_0','Critical Value'});
+WaldTest = table([J_0;CriticalValueWald],'VariableNames',{'WaldTest'},'RowNames',{'J_0','Critical Value'});
 %% 3.b
 %b.i
 % Setting matrix
-coefficients_3F = zeros(colSBM,8);
+coefficients_3F = zeros(8,colSBM);
 Residuals_3F = zeros(rowSBM,colSBM);
 
-% Excess Returns
-X1 = FFF_5(:,2:3)-RF;
-X = [FFF_5(:,1),X1];
+
 % Run regressions
 for i=1:colSBM
-    reg = fitlm(X,Excess_SBM(:,i));
-    coefficients_3F(i,1) = reg.Coefficients.Estimate(1);
-    coefficients_3F(i,3) = reg.Coefficients.Estimate(2);
-    coefficients_3F(i,5) = reg.Coefficients.Estimate(3);
-    coefficients_3F(i,7) = reg.Coefficients.Estimate(4);
-    coefficients_3F(i,2) = reg.Coefficients.tStat(1);
-    coefficients_3F(i,4) = reg.Coefficients.tStat(2);
-    coefficients_3F(i,6) = reg.Coefficients.tStat(3);
-    coefficients_3F(i,8) = reg.Coefficients.tStat(4);
+    reg = fitlm(FFF_5(:,1:3),Excess_SBM(:,i));
+    coefficients_3F(1,i) = reg.Coefficients.Estimate(1);
+    coefficients_3F(3,i) = reg.Coefficients.Estimate(2);
+    coefficients_3F(5,i) = reg.Coefficients.Estimate(3);
+    coefficients_3F(7,i) = reg.Coefficients.Estimate(4);
+    coefficients_3F(2,i) = reg.Coefficients.tStat(1);
+    coefficients_3F(4,i) = reg.Coefficients.tStat(2);
+    coefficients_3F(6,i) = reg.Coefficients.tStat(3);
+    coefficients_3F(8,i) = reg.Coefficients.tStat(4);
     Residuals_3F(:,i) = reg.Residuals.Raw;
 end
 
-coef_3F = coefficients_3F([1,5,6,10,11,15,16,20,21,25],:);
+coef_3F = coefficients_3F(:,[1,5,6,10,11,15,16,20,21,25]);
 
 % Creating table
-coef_3F =array2table(coef_3F,'VariableNames',{'alpha','tStat-alpha','beta','tStat-beta','s','tStat-s','h','tStat-h'},'RowNames',{'SizeSmall-LowBM','SizeSmall-HighBM','Size2-LowBM','Size2-HighBM','Size3-LowBM','Size3-HighBM','Size4-LowBM','Size4-HighBM','SizeBig-LowBM','SizeBig-HighBM'});
+coef_3F =array2table(coef_3F,'VariableNames',{'SizeSmall-LowBM','SizeSmall-HighBM','Size2-LowBM','Size2-HighBM','Size3-LowBM','Size3-HighBM','Size4-LowBM','Size4-HighBM','SizeBig-LowBM','SizeBig-HighBM'},'RowNames',{'alpha','tStat-alpha','beta','tStat-beta','s','tStat-s','h','tStat-h'});
 filename = 'Results/coef_3F.xlsx';
 writetable(coef_3F,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 
@@ -187,7 +193,7 @@ writetable(coef_3F,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 coefficients_TSP3F = zeros(2,4);
 
 % Run regressions
-reg = fitlm(coefficients_3F(:,3:2:7),EM_BM');
+reg = fitlm(coefficients_3F(3:2:7,:)',EM_BM');
 coefficients_TSP3F(1,1) = reg.Coefficients.Estimate(1);
 coefficients_TSP3F(1,2) = reg.Coefficients.Estimate(2);
 coefficients_TSP3F(1,3) = reg.Coefficients.Estimate(3);
@@ -204,63 +210,63 @@ filename = 'Results/coefficients_TSP3F.xlsx';
 writetable(coefficients_TSP3F,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 
 % Wald Test
-%Mean Factors
-mean_3F = mean(X);
 
 % Covariance matrix
 CovMat3F = 1/rowSBM*(Residuals_3F'*Residuals_3F);
 
 %Omega
-Omega = 1/rowSBM*((X-mean_3F)'*(X-mean_3F));
+Omega3F = 1/rowSBM*((FFF_5(:,1:3)-Mean_FFF5(:,1:3))'*(FFF_5(:,1:3)-Mean_FFF5(:,1:3)));
 
 % Joint test
-J_03F = rowSBM*((1+mean_3F*(Omega^(-1))*mean_3F')^(-1))*coefficients_3F(:,1)'*...
-    (CovMat3F^(-1))*coefficients_3F(:,1);
+J_03F = rowSBM*((1+Mean_FFF5(:,1:3)*(Omega3F^(-1))*Mean_FFF5(:,1:3)')^(-1))*coefficients_3F(1,:)*...
+    (CovMat3F^(-1))*coefficients_3F(1,:)';
 
+J_13F = ((rowSBM-25-3)/25)*((1+Mean_FFF5(:,1:3)*(Omega3F^(-1))*Mean_FFF5(:,1:3)')^(-1))*coefficients_3F(1,:)*...
+    (CovMat3F^(-1))*coefficients_3F(1,:)';
+
+%Critical Value F-statistic
+CriticalValue3F = finv(0.95,25,rowSBM-25-3);
 % Creating table
-WaldTest3F = table([J_03F;CriticalValue],'VariableNames',{'WaldTest'},'RowNames',{'J_0','Critical Value'});
+WaldTest3F = table([J_03F;CriticalValueWald],[J_13F;CriticalValue3F],'VariableNames',{'WaldTest','F-test'},'RowNames',{'J','Critical Value'});
 
 %% 3.c
-%b.i
+%c.i
 % Setting matrix
-coefficients_5F = zeros(colSBM,12);
+coefficients_5F = zeros(12,colSBM);
 Residuals_5F = zeros(rowSBM,colSBM);
 
-% Excess Returns
-XF = FFF_5(:,2:end)-RF;
-XF5 = [FFF_5(:,1),XF];
 % Run regressions
 for i=1:colSBM
-    reg = fitlm(XF5,Excess_SBM(:,i));
-    coefficients_5F(i,1) = reg.Coefficients.Estimate(1);
-    coefficients_5F(i,3) = reg.Coefficients.Estimate(2);
-    coefficients_5F(i,5) = reg.Coefficients.Estimate(3);
-    coefficients_5F(i,7) = reg.Coefficients.Estimate(4);
-    coefficients_5F(i,9) = reg.Coefficients.Estimate(5);
-    coefficients_5F(i,11) = reg.Coefficients.Estimate(6);
-    coefficients_5F(i,2) = reg.Coefficients.tStat(1);
-    coefficients_5F(i,4) = reg.Coefficients.tStat(2);
-    coefficients_5F(i,6) = reg.Coefficients.tStat(3);
-    coefficients_5F(i,8) = reg.Coefficients.tStat(4);
-    coefficients_5F(i,10) = reg.Coefficients.tStat(5);
-    coefficients_5F(i,12) = reg.Coefficients.tStat(6);
+    reg = fitlm(FFF_5,Excess_SBM(:,i));
+    coefficients_5F(1,i) = reg.Coefficients.Estimate(1);
+    coefficients_5F(3,i) = reg.Coefficients.Estimate(2);
+    coefficients_5F(5,i) = reg.Coefficients.Estimate(3);
+    coefficients_5F(7,i) = reg.Coefficients.Estimate(4);
+    coefficients_5F(9,i) = reg.Coefficients.Estimate(5);
+    coefficients_5F(11,i) = reg.Coefficients.Estimate(6);
+    coefficients_5F(2,i) = reg.Coefficients.tStat(1);
+    coefficients_5F(4,i) = reg.Coefficients.tStat(2);
+    coefficients_5F(6,i) = reg.Coefficients.tStat(3);
+    coefficients_5F(8,i) = reg.Coefficients.tStat(4);
+    coefficients_5F(10,i) = reg.Coefficients.tStat(5);
+    coefficients_5F(12,i) = reg.Coefficients.tStat(6);
     Residuals_5F(:,i) = reg.Residuals.Raw;
 end
 
-coef_5F = coefficients_5F([1,5,6,10,11,15,16,20,21,25],:);
+coef_5F = coefficients_5F(:,[1,5,6,10,11,15,16,20,21,25]);
 
 % Creating table
-coef_5F =array2table(coef_5F,'VariableNames',{'alpha','tStat-alpha','beta','tStat-beta','s','tStat-s','h','tStat-h','r','tStat-r','c','tStat-c'},'RowNames',{'SizeSmall-LowBM','SizeSmall-HighBM','Size2-LowBM','Size2-HighBM','Size3-LowBM','Size3-HighBM','Size4-LowBM','Size4-HighBM','SizeBig-LowBM','SizeBig-HighBM'});
+coef_5F =array2table(coef_5F,'VariableNames',{'SizeSmall-LowBM','SizeSmall-HighBM','Size2-LowBM','Size2-HighBM','Size3-LowBM','Size3-HighBM','Size4-LowBM','Size4-HighBM','SizeBig-LowBM','SizeBig-HighBM'},'RowNames',{'alpha','tStat-alpha','beta','tStat-beta','s','tStat-s','h','tStat-h','r','tStat-r','c','tStat-c'});
 filename = 'Results/coef_5F.xlsx';
 writetable(coef_5F,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 
-%% b.ii
+%% c.ii
 % Two stage procedure
 %Setting matrix
 coefficients_TSP5F = zeros(2,6);
 
 % Run regressions
-reg = fitlm(coefficients_5F(:,3:2:11),EM_BM');
+reg = fitlm(coefficients_5F(3:2:11,:)',EM_BM');
 coefficients_TSP5F(1,1) = reg.Coefficients.Estimate(1);
 coefficients_TSP5F(1,2) = reg.Coefficients.Estimate(2);
 coefficients_TSP5F(1,3) = reg.Coefficients.Estimate(3);
@@ -281,21 +287,24 @@ filename = 'Results/coefficients_TSP5F.xlsx';
 writetable(coefficients_TSP5F,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 
 % Wald Test
-%Mean Factors
-mean_5F = mean(XF5);
 
 % Covariance matrix
 CovMat5F = 1/rowSBM*(Residuals_5F'*Residuals_5F);
 
 %Omega
-Omega5F = 1/rowSBM*((XF5-mean_5F)'*(XF5-mean_5F));
+Omega5F = 1/rowSBM*((FFF_5-Mean_FFF5)'*(FFF_5-Mean_FFF5));
 
 % Joint test
-J_05F = rowSBM*((1+mean_5F*(Omega5F^(-1))*mean_5F')^(-1))*coefficients_5F(:,1)'*...
-    (CovMat5F^(-1))*coefficients_5F(:,1);
+J_05F = rowSBM*((1+Mean_FFF5*(Omega5F^(-1))*Mean_FFF5')^(-1))*coefficients_5F(1,:)*...
+    (CovMat5F^(-1))*coefficients_5F(1,:)';
 
+J_15F = ((rowSBM-25-5)/25)*((1+Mean_FFF5*(Omega5F^(-1))*Mean_FFF5')^(-1))*coefficients_5F(1,:)*...
+    (CovMat5F^(-1))*coefficients_5F(1,:)';
+
+%Critical Value F-statistic
+CriticalValue5F = finv(0.95,25,rowSBM-25-5);
 % Creating table
-WaldTest5F = table([J_05F;CriticalValue],'VariableNames',{'WaldTest'},'RowNames',{'J_0','Critical Value'});
+WaldTest5F = table([J_05F;CriticalValueWald],[J_15F;CriticalValue5F],'VariableNames',{'WaldTest','F-test'},'RowNames',{'J','Critical Value'});
 
 %% Exercice 4
 % a.i
@@ -304,22 +313,22 @@ Excess_OP = Size_OP-RF;
 
 % Setting matrix
 [rowOP,colOP] = size(Size_BM);
-coefficients_OP = zeros(colOP,4);
+coefficients_OP = zeros(4,colOP);
 Residuals_OP = zeros(rowOP,colOP);
 % Run regressions
 for i=1:colOP
     reg = fitlm(FFF_5(:,1),Excess_OP(:,i));
-    coefficients_OP(i,1) = reg.Coefficients.Estimate(1);
-    coefficients_OP(i,3) = reg.Coefficients.Estimate(2);
-    coefficients_OP(i,2) = reg.Coefficients.tStat(1);
-    coefficients_OP(i,4) = reg.Coefficients.tStat(2);
+    coefficients_OP(1,i) = reg.Coefficients.Estimate(1);
+    coefficients_OP(3,i) = reg.Coefficients.Estimate(2);
+    coefficients_OP(2,i) = reg.Coefficients.tStat(1);
+    coefficients_OP(4,i) = reg.Coefficients.tStat(2);
     Residuals_OP(:,i) = reg.Residuals.Raw;
 end
 
-coef_OP = coefficients_OP([1,5,6,10,11,15,16,20,21,25],:);
+coef_OP = coefficients_OP(:,[1,5,6,10,11,15,16,20,21,25]);
 
 % Creating table
-coef_OP =array2table(coef_OP,'VariableNames',{'alpha','tStat-alpha','beta','tStat-beta'},'RowNames',{'SizeSmall-LowOP','SizeSmall-HighOP','Size2-LowOP','Size2-HighOP','Size3-LowOP','Size3-HighOP','Size4-LowOP','Size4-HighOP','SizeBig-LowOP','SizeBig-HighOP'});
+coef_OP =array2table(coef_OP,'VariableNames',{'SizeSmall-LowOP','SizeSmall-HighOP','Size2-LowOP','Size2-HighOP','Size3-LowOP','Size3-HighOP','Size4-LowOP','Size4-HighOP','SizeBig-LowOP','SizeBig-HighOP'},'RowNames',{'alpha','tStat-alpha','beta','tStat-beta'});
 filename = 'Results/coef_OP.xlsx';
 writetable(coef_OP,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 
@@ -330,7 +339,7 @@ coefficientsOP_TSP = zeros(2,2);
 EM_OP = mean(Size_OP-RF);
 
 % Run regressions
-reg = fitlm(coefficients_OP(:,3),EM_OP');
+reg = fitlm(coefficients_OP(3,:)',EM_OP');
 coefficientsOP_TSP(1,1) = reg.Coefficients.Estimate(1);
 coefficientsOP_TSP(1,2) = reg.Coefficients.Estimate(2);
 coefficientsOP_TSP(2,1) = reg.Coefficients.tStat(1);
@@ -347,45 +356,39 @@ writetable(coefficientsOP_TSP,filename,'Sheet',1,'Range','D1','WriteRowNames',tr
 CovMatOP = 1/rowOP*(Residuals_OP'*Residuals_OP);
 
 % Joint test
-Em_rm = mean(FFF_5-RF)/std(FFF_5);
-J_0_OP = rowOP*((1+Em_rm^2)^(-1))*coefficients_OP(:,1)'*...
-    (CovMatOP^(-1))*coefficients_OP(:,1);
-
-% Critical value
-CriticalValue = chi2inv(0.95, 25);
+J_0_OP = rowOP*((1+Sharpe_FFF5(:,1)^2)^(-1))*coefficients_OP(1,:)*...
+    (CovMatOP^(-1))*coefficients_OP(1,:)';
 
 % Creating table
-WaldTestOP = table([J_0_OP;CriticalValue],'VariableNames',{'WaldTest'},'RowNames',{'J_0','Critical Value'});
+WaldTestOP = table([J_0_OP;CriticalValueWald],'VariableNames',{'WaldTest'},'RowNames',{'J_0','Critical Value'});
 %% 3.b
 %b.i
 % Setting matrix
-coefficientsOP_3F = zeros(colOP,8);
+coefficientsOP_3F = zeros(8,colOP);
 ResidualsOP_3F = zeros(rowOP,colOP);
 
-% Excess Returns
-X1_OP = FFF_5(:,2:3)-RF;
-X_OP = [FFF_5(:,1),X1_OP];
 % Run regressions
 for i=1:colOP
-    reg = fitlm(X_OP,Excess_OP(:,i));
-    coefficientsOP_3F(i,1) = reg.Coefficients.Estimate(1);
-    coefficientsOP_3F(i,3) = reg.Coefficients.Estimate(2);
-    coefficientsOP_3F(i,5) = reg.Coefficients.Estimate(3);
-    coefficientsOP_3F(i,7) = reg.Coefficients.Estimate(4);
-    coefficientsOP_3F(i,2) = reg.Coefficients.tStat(1);
-    coefficientsOP_3F(i,4) = reg.Coefficients.tStat(2);
-    coefficientsOP_3F(i,6) = reg.Coefficients.tStat(3);
-    coefficientsOP_3F(i,8) = reg.Coefficients.tStat(4);
+    reg = fitlm(FFF_5(:,1:3),Excess_OP(:,i));
+    coefficientsOP_3F(1,i) = reg.Coefficients.Estimate(1);
+    coefficientsOP_3F(3,i) = reg.Coefficients.Estimate(2);
+    coefficientsOP_3F(5,i) = reg.Coefficients.Estimate(3);
+    coefficientsOP_3F(7,i) = reg.Coefficients.Estimate(4);
+    coefficientsOP_3F(2,i) = reg.Coefficients.tStat(1);
+    coefficientsOP_3F(4,i) = reg.Coefficients.tStat(2);
+    coefficientsOP_3F(6,i) = reg.Coefficients.tStat(3);
+    coefficientsOP_3F(8,i) = reg.Coefficients.tStat(4);
     ResidualsOP_3F(:,i) = reg.Residuals.Raw;
 end
 
-coefOP_3F = coefficientsOP_3F([1,5,6,10,11,15,16,20,21,25],:);
+coefOP_3F = coefficientsOP_3F(:,[1,5,6,10,11,15,16,20,21,25]);
 
 % Creating table
-coefOP_3F =array2table(coefOP_3F,'VariableNames',{'alpha','tStat-alpha',...
-        'beta','tStat-beta','s','tStat-s','h','tStat-h'},'RowNames',...
+coefOP_3F =array2table(coefOP_3F,'VariableNames',...
         {'SizeSmall-LowBM','SizeSmall-HighOP','Size2-LowOP','Size2-HighOP',...
-        'Size3-LowOP','Size3-HighOP','Size4-LowOP','Size4-HighOP','SizeBig-LowOP','SizeBig-HighOP'});
+        'Size3-LowOP','Size3-HighOP','Size4-LowOP','Size4-HighOP','SizeBig-LowOP',...
+        'SizeBig-HighOP'},'RowNames',{'alpha','tStat-alpha',...
+        'beta','tStat-beta','s','tStat-s','h','tStat-h'});
 filename = 'Results/coefOP_3F.xlsx';
 writetable(coefOP_3F,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 
@@ -395,7 +398,7 @@ writetable(coefOP_3F,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 coefficientsOP_TSP3F = zeros(2,4);
 
 % Run regressions
-reg = fitlm(coefficientsOP_3F(:,3:2:7),EM_OP');
+reg = fitlm(coefficientsOP_3F(3:2:7,:)',EM_OP');
 coefficientsOP_TSP3F(1,1) = reg.Coefficients.Estimate(1);
 coefficientsOP_TSP3F(1,2) = reg.Coefficients.Estimate(2);
 coefficientsOP_TSP3F(1,3) = reg.Coefficients.Estimate(3);
@@ -412,66 +415,65 @@ filename = 'Results/coefficientsOP_TSP3F.xlsx';
 writetable(coefficientsOP_TSP3F,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 
 % Wald Test
-%Mean Factors
-meanOP_3F = mean(X_OP);
 
 % Covariance matrix
 CovMatOP3F = 1/rowOP*(ResidualsOP_3F'*ResidualsOP_3F);
 
 %Omega
-OmegaOP = 1/rowOP*((X_OP-meanOP_3F)'*(X_OP-meanOP_3F));
+OmegaOP3F = 1/rowOP*((FFF_5(:,1:3)-Mean_FFF5(:,1:3))'*(FFF_5(:,1:3)-Mean_FFF5(:,1:3)));
 
 % Joint test
-J_0OP3F = rowOP*((1+meanOP_3F*(OmegaOP^(-1))*meanOP_3F')^(-1))*coefficientsOP_3F(:,1)'*...
-    (CovMatOP3F^(-1))*coefficientsOP_3F(:,1);
+J_0OP3F = rowOP*((1+Mean_FFF5(:,1:3)*(OmegaOP3F^(-1))*Mean_FFF5(:,1:3)')^(-1))*coefficientsOP_3F(1,:)*...
+    (CovMatOP3F^(-1))*coefficientsOP_3F(1,:)';
+
+%F-test
+J_1OP3F = ((rowOP-25-3)/25)*((1+Mean_FFF5(:,1:3)*(OmegaOP3F^(-1))*Mean_FFF5(:,1:3)')^(-1))*coefficientsOP_3F(1,:)*...
+    (CovMatOP3F^(-1))*coefficientsOP_3F(1,:)';
 
 % Creating table
-WaldTestOP3F = table([J_0OP3F;CriticalValue],'VariableNames',{'WaldTest'},'RowNames',{'J_0','Critical Value'});
+WaldTestOP3F = table([J_0OP3F;CriticalValueWald],[J_1OP3F;CriticalValue3F],'VariableNames',{'WaldTest','F-test'},'RowNames',{'J','Critical Value'});
 
 %% 3.c
-%b.i
+%c.i
 % Setting matrix
-coefficientsOP_5F = zeros(colOP,12);
+coefficientsOP_5F = zeros(12,colOP);
 ResidualsOP_5F = zeros(rowOP,colOP);
 
-% Excess Returns
-XFOP = FFF_5(:,2:end)-RF;
-XF5OP = [FFF_5(:,1),XFOP];
 % Run regressions
 for i=1:colOP
-    reg = fitlm(XF5OP,Excess_OP(:,i));
-    coefficientsOP_5F(i,1) = reg.Coefficients.Estimate(1);
-    coefficientsOP_5F(i,3) = reg.Coefficients.Estimate(2);
-    coefficientsOP_5F(i,5) = reg.Coefficients.Estimate(3);
-    coefficientsOP_5F(i,7) = reg.Coefficients.Estimate(4);
-    coefficientsOP_5F(i,9) = reg.Coefficients.Estimate(5);
-    coefficientsOP_5F(i,11) = reg.Coefficients.Estimate(6);
-    coefficientsOP_5F(i,2) = reg.Coefficients.tStat(1);
-    coefficientsOP_5F(i,4) = reg.Coefficients.tStat(2);
-    coefficientsOP_5F(i,6) = reg.Coefficients.tStat(3);
-    coefficientsOP_5F(i,8) = reg.Coefficients.tStat(4);
-    coefficientsOP_5F(i,10) = reg.Coefficients.tStat(5);
-    coefficientsOP_5F(i,12) = reg.Coefficients.tStat(6);
+    reg = fitlm(FFF_5,Excess_OP(:,i));
+    coefficientsOP_5F(1,i) = reg.Coefficients.Estimate(1);
+    coefficientsOP_5F(3,i) = reg.Coefficients.Estimate(2);
+    coefficientsOP_5F(5,i) = reg.Coefficients.Estimate(3);
+    coefficientsOP_5F(7,i) = reg.Coefficients.Estimate(4);
+    coefficientsOP_5F(9,i) = reg.Coefficients.Estimate(5);
+    coefficientsOP_5F(11,i) = reg.Coefficients.Estimate(6);
+    coefficientsOP_5F(2,i) = reg.Coefficients.tStat(1);
+    coefficientsOP_5F(4,i) = reg.Coefficients.tStat(2);
+    coefficientsOP_5F(6,i) = reg.Coefficients.tStat(3);
+    coefficientsOP_5F(8,i) = reg.Coefficients.tStat(4);
+    coefficientsOP_5F(10,i) = reg.Coefficients.tStat(5);
+    coefficientsOP_5F(12,i) = reg.Coefficients.tStat(6);
     ResidualsOP_5F(:,i) = reg.Residuals.Raw;
 end
 
-coefOP_5F = coefficientsOP_5F([1,5,6,10,11,15,16,20,21,25],:);
+coefOP_5F = coefficientsOP_5F(:,[1,5,6,10,11,15,16,20,21,25]);
 
 % Creating table
-coefOP_5F =array2table(coefOP_5F,'VariableNames',{'alpha','tStat-alpha','beta',...
-            'tStat-beta','s','tStat-s','h','tStat-h','r','tStat-r','c','tStat-c'},...
-            'RowNames',{'SizeSmall-LowOP','SizeSmall-HighOP','Size2-LowOP','Size2-HighOP',...
-            'Size3-LowOP','Size3-HighOP','Size4-LowOP','Size4-HighOP','SizeBig-LowOP','SizeBig-HighOP'});
+coefOP_5F =array2table(coefOP_5F,'VariableNames',{'SizeSmall-LowOP','SizeSmall-HighOP',...
+    'Size2-LowOP','Size2-HighOP','Size3-LowOP','Size3-HighOP','Size4-LowOP',...
+    'Size4-HighOP','SizeBig-LowOP','SizeBig-HighOP'},'RowNames',{'alpha','tStat-alpha','beta',...
+            'tStat-beta','s','tStat-s','h','tStat-h','r','tStat-r','c','tStat-c'});
 filename = 'Results/coefOP_5F.xlsx';
 writetable(coefOP_5F,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 
-%% b.ii
+%% c.ii
 % Two stage procedure
 %Setting matrix
 coefficientsOP_TSP5F = zeros(2,6);
 
 % Run regressions
-reg = fitlm(coefficientsOP_5F(:,3:2:11),EM_OP');
+reg = fitlm(coefficientsOP_5F(3:2:11,:)',EM_OP');
 coefficientsOP_TSP5F(1,1) = reg.Coefficients.Estimate(1);
 coefficientsOP_TSP5F(1,2) = reg.Coefficients.Estimate(2);
 coefficientsOP_TSP5F(1,3) = reg.Coefficients.Estimate(3);
@@ -492,21 +494,23 @@ filename = 'Results/coefficientsOP_TSP5F.xlsx';
 writetable(coefficientsOP_TSP5F,filename,'Sheet',1,'Range','D1','WriteRowNames',true)
 
 % Wald Test
-%Mean Factors
-meanOP_5F = mean(XF5OP);
 
 % Covariance matrix
 CovMat5FOP = 1/rowOP*(ResidualsOP_5F'*ResidualsOP_5F);
 
 %Omega
-Omega5FOP = 1/rowOP*((XF5OP-meanOP_5F)'*(XF5OP-meanOP_5F));
+Omega5FOP = 1/rowOP*((FFF_5-Mean_FFF5)'*(FFF_5-Mean_FFF5));
 
 % Joint test
-J_0OP5F = rowOP*((1+meanOP_5F*(Omega5FOP^(-1))*meanOP_5F')^(-1))*coefficientsOP_5F(:,1)'*...
-    (CovMat5FOP^(-1))*coefficientsOP_5F(:,1);
+J_0OP5F = rowOP*((1+Mean_FFF5*(Omega5FOP^(-1))*Mean_FFF5')^(-1))*coefficientsOP_5F(1,:)*...
+    (CovMat5FOP^(-1))*coefficientsOP_5F(1,:)';
+
+%F-test
+J_1OP5F = ((rowOP-25-5)/25)*((1+Mean_FFF5*(Omega5FOP^(-1))*Mean_FFF5')^(-1))*coefficientsOP_5F(1,:)*...
+    (CovMat5FOP^(-1))*coefficientsOP_5F(1,:)';
 
 % Creating table
-WaldTestOP5F = table([J_0OP5F;CriticalValue],'VariableNames',{'WaldTest'},'RowNames',{'J_0','Critical Value'});
+WaldTestOP5F = table([J_0OP5F;CriticalValueWald],[J_1OP5F;CriticalValue5F],'VariableNames',{'WaldTest','F-test'},'RowNames',{'J','Critical Value'});
 
 
 %% LatexTable

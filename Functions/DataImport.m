@@ -60,7 +60,7 @@ Size_OP = table2array(Size_OP(2:end,1:end)); %Take out the date from the matrix 
 opts = spreadsheetImportOptions("NumVariables", 25);
 
 % Specify sheet and range
-opts.Sheet = "Size-OP";
+opts.Sheet = "Size-INV";
 opts.DataRange = "B17:Z683";
 
 % Specify column names and types
